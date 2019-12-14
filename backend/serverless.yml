@@ -24,6 +24,7 @@ provider:
   environment:
     AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
     TODO_TABLE: Todos-${self:provider.stage}
+    IMAGES_BUCKET: udacity-todos-${self:provider.stage}
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -32,6 +33,11 @@ provider:
         - dynamodb:DeleteItem
         - dynamodb:UpdateItem
       Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODO_TABLE}
+    - Effect: Allow
+      Action:
+        - s3:PutObject
+        - s3:GetObject
+      Resource: arn:aws:s3:::${self:provider.environment.IMAGES_BUCKET}
 
 functions:
   GetTodos:
@@ -62,6 +68,13 @@ functions:
           method: patch
           path: todos/{todoId}
           cors: true
+  GenerateUploadUrl:
+    handler: src/lambda/http/generateUploadUrl.handler
+    events:
+      - http:
+          method: post
+          path: todos/{todoId}/attachment
+          cors: true
 
 resources:
   Resources:
@@ -77,3 +90,7 @@ resources:
             KeyType: HASH
         BillingMode: PAY_PER_REQUEST
         TableName: ${self:provider.environment.TODO_TABLE}
+    TodoBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:provider.environment.IMAGES_BUCKET}
