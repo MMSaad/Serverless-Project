@@ -8,6 +8,8 @@ const todoTable = process.env.TODO_TABLE
 
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   
+
+  console.log(event)
   //TODO: Handle logged user and filter based on him
   let nextKey // Next key to continue scan operation if necessary
   let limit // Maximum number of elements to return
