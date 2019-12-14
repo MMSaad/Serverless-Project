@@ -40,12 +40,15 @@ provider:
       Resource: arn:aws:s3:::${self:provider.environment.IMAGES_BUCKET}
 
 functions:
+  Auth:
+    handler: src/lambda/auth/auth0Authorizer.handler
   GetTodos:
     handler: src/lambda/http/getTodos.handler
     events:
       - http:
           method: get
           path: todos
+          authorizer: Auth
           cors: true
   DeleteTodo:
     handler: src/lambda/http/deleteTodo.handler
@@ -53,6 +56,7 @@ functions:
       - http:
           method: delete
           path: todos/{todoId}
+          authorizer: Auth
           cors: true
   CreateTodo:
     handler: src/lambda/http/createTodo.handler
@@ -60,6 +64,7 @@ functions:
       - http:
           method: post
           path: todos
+          authorizer: Auth
           cors: true
   UpdateTodo:
     handler: src/lambda/http/updateTodo.handler
@@ -67,6 +72,7 @@ functions:
       - http:
           method: patch
           path: todos/{todoId}
+          authorizer: Auth
           cors: true
   GenerateUploadUrl:
     handler: src/lambda/http/generateUploadUrl.handler
@@ -74,11 +80,22 @@ functions:
       - http:
           method: post
           path: todos/{todoId}/attachment
+          authorizer: Auth
           cors: true
 
 resources:
   Resources:
     # TODO: Add any necessary AWS resources
+    GatewayResponseDefault4XX:
+      Type: AWS::ApiGateway::GatewayResponse
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*''"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization'"
+          gatewayresponse.header.Access-Control-Allow-Methods: "'GET,OPTIONS,POST'"
+        ResponseType: DEFAULT_4XX
+        RestApiId:
+          Ref: 'ApiGatewayRestApi'
     TodoDynamoDbTable:
       Type: AWS::DynamoDB::Table
       Properties:
