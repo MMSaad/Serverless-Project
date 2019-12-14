@@ -48,6 +48,13 @@ functions:
           method: delete
           path: todos/{todoId}
           cors: true
+  CreateTodo:
+    handler: src/lambda/http/createTodo.handler
+    events:
+      - http:
+          method: post
+          path: todos
+          cors: true
 
 resources:
   Resources:
