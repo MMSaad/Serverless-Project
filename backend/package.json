@@ -1,13 +1,22 @@
 {
   "name": "todos",
   "version": "1.0.0",
-  "description": "Serverless webpack example using Typescript",
+  "description": "Udacity Serverless project",
   "main": "handler.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "source-map-support": "^0.5.10"
+    "source-map-support": "^0.5.10",
+    "uuid": "^3.3.3",
+    "@types/axios": "^0.14.0",
+    "@types/http-errors": "^1.6.1",
+    "aws-xray-sdk": "^2.2.0",
+    "axios": "^0.19.0",
+    "http-errors": "^1.7.2",
+    "jsonwebtoken": "^8.5.1",
+    "middy": "^0.27.0",
+    "winston": "^3.2.1"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.17",
@@ -17,8 +26,14 @@
     "ts-loader": "^5.3.3",
     "typescript": "^3.2.4",
     "webpack": "^4.29.0",
-    "webpack-node-externals": "^1.7.2"
+    "webpack-node-externals": "^1.7.2",
+    "aws-sdk": "^2.587.0",
+    "serverless-aws-documentation": "^1.1.0",
+    "serverless-reqvalidator-plugin": "^1.0.3",
+    "@types/jsonwebtoken": "^8.3.2",
+    "serverless-iam-roles-per-function": "^1.0.4",
+    "serverless-plugin-canary-deployments": "^0.4.7"
   },
-  "author": "The serverless webpack authors (https://github.com/elastic-coders/serverless-webpack)",
+  "author": "Mustafa Saad",
   "license": "MIT"
 }

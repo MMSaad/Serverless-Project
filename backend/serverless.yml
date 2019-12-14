@@ -4,14 +4,17 @@ service:
 #app: your-app-name
 #org: your-org-name
 
+
+plugins:
+  - serverless-webpack
+  - serverless-aws-documentation
+  - serverless-reqvalidator-plugin
+
 custom:
   webpack:
     webpackConfig: ./webpack.config.js
     includeModules: true
 
-# Add the serverless-webpack plugin
-plugins:
-  - serverless-webpack
 
 provider:
   name: aws
@@ -20,11 +23,36 @@ provider:
     minimumCompressionSize: 1024 # Enable gzip compression for responses > 1 KB
   environment:
     AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
+    TODO_TABLE: Todos-${self:provider.stage}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Scan
+        - dynamodb:PutItem
+        - dynamodb:DeleteItem
+        - dynampdb:UpdateItem
+      Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODO_TABLE}
 
 functions:
-  hello:
-    handler: handler.hello
+  GetTodos:
+    handler: src/lambda/http/getTodos.handler
     events:
       - http:
           method: get
-          path: hello
+          path: todos
+          cors: true
+
+resources:
+  Resources:
+    # TODO: Add any necessary AWS resources
+    TodoDynamoDbTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: todoId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: todoId
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+        TableName: ${self:provider.environment.TODO_TABLE}
