@@ -30,7 +30,7 @@ provider:
         - dynamodb:Scan
         - dynamodb:PutItem
         - dynamodb:DeleteItem
-        - dynampdb:UpdateItem
+        - dynamodb:UpdateItem
       Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODO_TABLE}
 
 functions:
@@ -54,6 +54,13 @@ functions:
       - http:
           method: post
           path: todos
+          cors: true
+  UpdateTodo:
+    handler: src/lambda/http/updateTodo.handler
+    events:
+      - http:
+          method: patch
+          path: todos/{todoId}
           cors: true
 
 resources:

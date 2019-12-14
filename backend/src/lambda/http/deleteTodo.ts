@@ -26,7 +26,7 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
       }
   }
 
-  const result = await docClient.delete(param).promise()
+   await docClient.delete(param).promise()
   return {
       statusCode:204,
       headers:{
