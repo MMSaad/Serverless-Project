@@ -24,10 +24,9 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
     item.userId= userId
     item.todoId= newId
     item.createdAt= new Date().toISOString()
-    item.name= newTodo.name,
-    item.dueDate= newTodo.dueDate,
-    item.done= false,
-    item.attachmentUrl= null
+    item.name= newTodo.name
+    item.dueDate= newTodo.dueDate
+    item.done= false
   
 
     await docClient.put({

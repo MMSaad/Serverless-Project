@@ -1,6 +1,7 @@
 import 'source-map-support/register'
 import { APIGatewayProxyEvent, APIGatewayProxyResult, APIGatewayProxyHandler } from 'aws-lambda'
 import { DynamoDB } from 'aws-sdk'
+import * as AWS from 'aws-sdk'
 import { getUserId} from '../../helpers/authHelper'
 
 const docClient = new DynamoDB.DocumentClient()
@@ -19,7 +20,28 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
             ':userId':userId
         }
     }).promise()
-  
+    const s3 = new AWS.S3({
+        signatureVersion: 'v4',
+        region: process.env.region,
+        params: {Bucket: process.env.IMAGES_BUCKET}
+      });
+      const signedUrlExpireSeconds = 60 * 5
+    for(const record of result.Items){
+        try{
+         await s3.headObject({
+            Bucket: process.env.IMAGES_BUCKET,
+            Key: `${record.todoId}.png` 
+        }).promise();
+        
+        record.attachmentUrl =  s3.getSignedUrl('getObject', {
+            Bucket: process.env.IMAGES_BUCKET,
+            Key: `${record.todoId}.png`,
+            Expires: signedUrlExpireSeconds
+          });
+        }catch(err){
+            console.log(err)
+        }
+    }
 
     return {
       statusCode: 200,
