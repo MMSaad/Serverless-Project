@@ -1,57 +1,24 @@
 import 'source-map-support/register'
 import { APIGatewayProxyEvent, APIGatewayProxyResult, APIGatewayProxyHandler } from 'aws-lambda'
 import { DynamoDB } from 'aws-sdk'
-
+import { getUserId} from '../../helpers/authHelper'
 
 const docClient = new DynamoDB.DocumentClient()
 const todoTable = process.env.TODO_TABLE
+const userIdIndex = process.env.USER_ID_INDEX
 
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   
-
-  console.log(event)
-  //TODO: Handle logged user and filter based on him
-  let nextKey // Next key to continue scan operation if necessary
-  let limit // Maximum number of elements to return
-
-  
-  try {
-    // Parse query parameters
-    nextKey = parseNextKeyParameter(event)
-    limit = parseLimitParameter(event) || 20
-    console.log(nextKey,limit)
-  } catch (e) {
-    console.log('Failed to parse query parameters: ', e.message)
-    return {
-      statusCode: 400,
-      headers: {
-        'Access-Control-Allow-Origin': '*'
-      },
-      body: JSON.stringify({
-        error: 'Invalid parameters'
-      })
-    }
-  }
-
-  const scanParams = {
-    TableName: todoTable,
-    Limit: limit,
-    ExclusiveStartKey: nextKey
-  }
-
-  const result = await docClient.scan(scanParams).promise()
-
-  if(!result.$response){
-    return {
-      statusCode: 500,
-      headers:{
-        'Access-Control-Allow-Origin':'*'
-      },
-      body:JSON.stringify({
-        error: 'an error occured'
-      })
-    }
-  }
+    const authHeader = event.headers['Authorization']
+    const userId = getUserId(authHeader)
+    const result = await docClient.query({
+        TableName: todoTable,
+        IndexName:userIdIndex,
+        KeyConditionExpression: 'userId = :userId',
+        ExpressionAttributeValues:{
+            ':userId':userId
+        }
+    }).promise()
   
 
     return {
@@ -60,8 +27,7 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
         'Access-Control-Allow-Origin':'*'
       },
       body: JSON.stringify({
-        items: result.Items,
-        lastKey: result.LastEvaluatedKey
+        items: result.Items
       })
     }
 
