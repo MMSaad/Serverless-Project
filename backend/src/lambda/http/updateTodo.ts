@@ -28,7 +28,7 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
       throw new Error('TODO does not belong to authorized user')
   }
 
-  // TODO: Update a TODO item with the provided id using values in the "updatedTodo" object
+  
   await docClient.update({
     TableName: todoTable,
     Key:{

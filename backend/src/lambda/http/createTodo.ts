@@ -12,32 +12,31 @@ const todoTable = process.env.TODO_TABLE
 
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   
-  const newTodo: CreateTodoRequest = JSON.parse(event.body)
+    const newTodo: CreateTodoRequest = JSON.parse(event.body)
 
-  // TODO: Implement creating a new TODO item
-  const newId = uuid()
-  const authHeader = event.headers['Authorization']
-  const userId = getUserId(authHeader)
-  const item = new TodoItem()
+    const newId = uuid()
+    const authHeader = event.headers['Authorization']
+    const userId = getUserId(authHeader)
+    const item = new TodoItem()
 
   
   
     item.userId= userId
     item.todoId= newId
-    item.createdAt= new Date().toString()
+    item.createdAt= new Date().toISOString()
     item.name= newTodo.name,
     item.dueDate= newTodo.dueDate,
     item.done= false,
     item.attachmentUrl= null
   
 
-  await docClient.put({
-    TableName: todoTable,
-    Item: item
-}).promise()
+    await docClient.put({
+        TableName: todoTable,
+        Item: item
+    }).promise()
 
   
-  return {
+    return {
         statusCode: 201,
         headers:{
             'Access-Control-Allow-Origin':'*'

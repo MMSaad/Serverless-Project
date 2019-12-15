@@ -13,7 +13,7 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
 
     const url = s3.getSignedUrl('putObject', {
       Bucket: process.env.IMAGES_BUCKET,
-      Key: todoId,
+      Key: `${todoId}.png`,
       Expires: signedUrlExpireSeconds
     });
   
