@@ -1,6 +1,7 @@
 import 'source-map-support/register'
 import { APIGatewayProxyEvent, APIGatewayProxyResult, APIGatewayProxyHandler } from 'aws-lambda'
 import { DynamoDB } from 'aws-sdk'
+import { getUserId} from '../../helpers/authHelper'
 
 const docClient = new DynamoDB.DocumentClient()
 const todoTable = process.env.TODO_TABLE
@@ -18,6 +19,24 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
         })
       }
   }
+
+  const authHeader = event.headers['Authorization']
+  const userId = getUserId(authHeader)
+
+  const item = await docClient.query({
+    TableName: todoTable,
+    KeyConditionExpression: 'todoId = :todoId',
+    ExpressionAttributeValues:{
+        ':todoId': todoId
+    }
+}).promise()
+if(item.Count == 0){
+    throw new Error('TODO not exists');
+}
+
+if(item.Items[0].userId !== userId){
+    throw new Error('TODO does not belong to authorized user')
+}
 
   const param = {
       TableName: todoTable,
