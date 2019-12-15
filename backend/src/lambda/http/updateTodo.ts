@@ -2,53 +2,31 @@ import 'source-map-support/register'
 import { APIGatewayProxyEvent, APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda'
 import { getUserId} from '../../helpers/authHelper'
 import { UpdateTodoRequest } from '../../requests/UpdateTodoRequest'
-import { DynamoDB } from 'aws-sdk'
+import { TodosAccess } from '../../dataLayer/todosAccess'
+import { ApiResponseHelper } from '../../helpers/apiResponseHelper'
 
-const docClient = new DynamoDB.DocumentClient()
-const todoTable = process.env.TODO_TABLE
+
+const todosAccess = new TodosAccess()
+const apiResponseHelper = new ApiResponseHelper()
 
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-  const todoId = event.pathParameters.todoId
-  const updatedTodo: UpdateTodoRequest = JSON.parse(event.body)
-  const authHeader = event.headers['Authorization']
-  const userId = getUserId(authHeader)
   
-  const item = await docClient.query({
-      TableName: todoTable,
-      KeyConditionExpression: 'todoId = :todoId',
-      ExpressionAttributeValues:{
-          ':todoId': todoId
-      }
-  }).promise()
-  if(item.Count == 0){
-      throw new Error('TODO not exists');
-  }
-
-  if(item.Items[0].userId !== userId){
-      throw new Error('TODO does not belong to authorized user')
-  }
-
+    const todoId = event.pathParameters.todoId
+    const updatedTodo: UpdateTodoRequest = JSON.parse(event.body)
+    const authHeader = event.headers['Authorization']
+    const userId = getUserId(authHeader)
   
-  await docClient.update({
-    TableName: todoTable,
-    Key:{
-        'todoId':todoId
-    },
-    UpdateExpression: 'set #namefield = :n, dueDate = :d, done = :done',
-    ExpressionAttributeValues: {
-        ':n' : updatedTodo.name,
-        ':d' : updatedTodo.dueDate,
-        ':done' : updatedTodo.done
-    },
-    ExpressionAttributeNames:{
-        "#namefield": "name"
-      }
-  }).promise()
-  return {
-    statusCode:204,
-    headers:{
-      'Access-Control-Allow-Origin':'*'
-    },
-    body: null
-}
+    const item = await todosAccess.getTodoById(todoId)
+  
+    if(item.Count == 0){
+        return apiResponseHelper.generateErrorResponse(400,'TODO not exists')
+    }
+
+    if(item.Items[0].userId !== userId){
+        return apiResponseHelper.generateErrorResponse(400,'TODO does not belong to authorized user')
+    }
+
+    await new TodosAccess().updateTodo(updatedTodo,todoId)
+    return apiResponseHelper.generateEmptySuccessResponse(204)
+  
 }

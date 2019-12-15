@@ -1,57 +1,32 @@
 import 'source-map-support/register'
 import { APIGatewayProxyEvent, APIGatewayProxyResult, APIGatewayProxyHandler } from 'aws-lambda'
-import { DynamoDB } from 'aws-sdk'
 import { getUserId} from '../../helpers/authHelper'
+import { TodosAccess } from '../../dataLayer/todosAccess'
+import { ApiResponseHelper } from '../../helpers/apiResponseHelper'
 
-const docClient = new DynamoDB.DocumentClient()
-const todoTable = process.env.TODO_TABLE
+const todosAccess = new TodosAccess()
+const apiResponseHelper = new ApiResponseHelper()
 
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-  const todoId = event.pathParameters.todoId
-  if(!todoId){
-    return {
-        statusCode: 400,
-        headers:{
-          'Access-Control-Allow-Origin':'*'
-        },
-        body:JSON.stringify({
-          error: 'invalid parameters'
-        })
-      }
-  }
-
-  const authHeader = event.headers['Authorization']
-  const userId = getUserId(authHeader)
-
-  const item = await docClient.query({
-    TableName: todoTable,
-    KeyConditionExpression: 'todoId = :todoId',
-    ExpressionAttributeValues:{
-        ':todoId': todoId
+    const todoId = event.pathParameters.todoId
+    if(!todoId){
+        return apiResponseHelper.generateErrorResponse(400,'invalid parameters')
     }
-}).promise()
-if(item.Count == 0){
-    throw new Error('TODO not exists');
-}
 
-if(item.Items[0].userId !== userId){
-    throw new Error('TODO does not belong to authorized user')
-}
+    const authHeader = event.headers['Authorization']
+    const userId = getUserId(authHeader)
 
-  const param = {
-      TableName: todoTable,
-      Key:{
-          "todoId":todoId
-      }
-  }
+    const item = await todosAccess.getTodoById(todoId)
+    if(item.Count == 0){
+    return apiResponseHelper.generateErrorResponse(400,'TODO not exists')
+    }
 
-   await docClient.delete(param).promise()
-  return {
-      statusCode:204,
-      headers:{
-        'Access-Control-Allow-Origin':'*'
-      },
-      body: null
-  }
+    if(item.Items[0].userId !== userId){
+        return apiResponseHelper.generateErrorResponse(400,'TODO does not belong to authorized user')
+    }
+
+    await todosAccess.deleteTodoById(todoId)
+    return apiResponseHelper.generateEmptySuccessResponse(204)
+
   
 }
