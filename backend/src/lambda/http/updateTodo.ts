@@ -1,7 +1,6 @@
 import 'source-map-support/register'
-
 import { APIGatewayProxyEvent, APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda'
-
+import { getUserId} from '../../helpers/authHelper'
 import { UpdateTodoRequest } from '../../requests/UpdateTodoRequest'
 import { DynamoDB } from 'aws-sdk'
 
@@ -11,7 +10,24 @@ const todoTable = process.env.TODO_TABLE
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const todoId = event.pathParameters.todoId
   const updatedTodo: UpdateTodoRequest = JSON.parse(event.body)
-    
+  const authHeader = event.headers['Authorization']
+  const userId = getUserId(authHeader)
+  
+  const item = await docClient.query({
+      TableName: todoTable,
+      KeyConditionExpression: 'todoId = :todoId',
+      ExpressionAttributeValues:{
+          ':todoId': todoId
+      }
+  }).promise()
+  if(item.Count == 0){
+      throw new Error('TODO not exists');
+  }
+
+  if(item.Items[0].userId !== userId){
+      throw new Error('TODO does not belong to authorized user')
+  }
+
   // TODO: Update a TODO item with the provided id using values in the "updatedTodo" object
   await docClient.update({
     TableName: todoTable,

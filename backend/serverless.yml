@@ -25,6 +25,8 @@ provider:
     AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
     TODO_TABLE: Todos-${self:provider.stage}
     IMAGES_BUCKET: udacity-todos-${self:provider.stage}
+    USER_ID_INDEX: userId
+
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -32,12 +34,17 @@ provider:
         - dynamodb:PutItem
         - dynamodb:DeleteItem
         - dynamodb:UpdateItem
+        - dynamodb:Query
       Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODO_TABLE}
     - Effect: Allow
       Action:
         - s3:PutObject
         - s3:GetObject
       Resource: arn:aws:s3:::${self:provider.environment.IMAGES_BUCKET}/*
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+      Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODO_TABLE}/index/${self:provider.environment.USER_ID_INDEX}
 
 functions:
   Auth:
@@ -102,9 +109,18 @@ resources:
         AttributeDefinitions:
           - AttributeName: todoId
             AttributeType: S
+          - AttributeName: userId
+            AttributeType: S
         KeySchema:
           - AttributeName: todoId
             KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: ${self:provider.environment.USER_ID_INDEX}
+            KeySchema:
+            - AttributeName: userId
+              KeyType: HASH
+            Projection:
+              ProjectionType: ALL
         BillingMode: PAY_PER_REQUEST
         TableName: ${self:provider.environment.TODO_TABLE}
     TodoBucket:
