@@ -40,6 +40,9 @@ provider:
     TODO_TABLE: Todos-${self:provider.stage}
     IMAGES_BUCKET: udacity-todos-${self:provider.stage}
     USER_ID_INDEX: userId
+  tracing:
+    lambda: true
+    apiGateway: true
 
   iamRoleStatements:
     - Effect: Allow
@@ -60,6 +63,9 @@ provider:
         - dynamodb:Query
       Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODO_TABLE}/index/${self:provider.environment.USER_ID_INDEX}
 
+
+
+  
 functions:
   Auth:
     handler: src/lambda/auth/auth0Authorizer.handler

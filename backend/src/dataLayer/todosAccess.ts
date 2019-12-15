@@ -1,12 +1,16 @@
-import { DocumentClient, QueryOutput } from "aws-sdk/clients/dynamodb";
 import { TodoItem } from "../models/todoItem";
 import { CreateTodoRequest } from "../requests/createTodoRequest";
 import { UpdateTodoRequest } from "../requests/updateTodoRequest";
 const uuid = require('uuid/v4')
+import * as AWS from 'aws-sdk'
+import * as AWSXRay from 'aws-xray-sdk'
+
+
 
 export class TodosAccess{
     constructor(
-        private readonly docClient: DocumentClient = new DocumentClient(),
+        private readonly XAWS = AWSXRay.captureAWS(AWS),
+        private readonly docClient: AWS.DynamoDB.DocumentClient = new XAWS.DynamoDB.DocumentClient(),
         private readonly todosTable = process.env.TODO_TABLE,
         private readonly userIdIndex = process.env.USER_ID_INDEX
     )
@@ -43,7 +47,7 @@ export class TodosAccess{
     }
 
 
-    async getTodoById(id: string): Promise<QueryOutput>{
+    async getTodoById(id: string): Promise<AWS.DynamoDB.QueryOutput>{
         return await this.docClient.query({
             TableName: this.todosTable,
             KeyConditionExpression: 'todoId = :todoId',
