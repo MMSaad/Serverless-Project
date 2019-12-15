@@ -22,7 +22,7 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
     if(item.Count == 0){
         logger.error(`user ${userId} requesting update for non exists todo with id ${todoId}`)
         return apiResponseHelper.generateErrorResponse(400,'TODO not exists')
-    }
+    } 
 
     if(item.Items[0].userId !== userId){
         logger.error(`user ${userId} requesting update todo does not belong to his account with id ${todoId}`)

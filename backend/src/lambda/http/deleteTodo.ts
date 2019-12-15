@@ -15,7 +15,7 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
         logger.error('invalid delete attempt without todo id')
         return apiResponseHelper.generateErrorResponse(400,'invalid parameters')
     }
-
+ 
     const authHeader = event.headers['Authorization']
     const userId = getUserId(authHeader)
 

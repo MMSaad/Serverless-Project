@@ -9,11 +9,19 @@ plugins:
   - serverless-webpack
   - serverless-aws-documentation
   - serverless-reqvalidator-plugin
+  - serverless-iam-roles-per-function
+
+package:
+  individually: true
 
 custom:
   webpack:
     webpackConfig: ./webpack.config.js
     includeModules: true
+    packagerOptions:
+      scripts:
+        - rm -rf node_modules/aws-sdk
+
   documentation:
     api:
       info:

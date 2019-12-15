@@ -13,10 +13,10 @@ const logger = createLogger('todos')
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   
     const authHeader = event.headers['Authorization']
-    const userId = getUserId(authHeader)
+    const userId = getUserId(authHeader) 
     logger.info(`get groups for user ${userId}`)
     const result = await new TodosAccess().getUserTodos(userId)
-    
+      
     for(const record of result){
         record.attachmentUrl = await s3Helper.getTodoAttachmentUrl(record.todoId)
     }
