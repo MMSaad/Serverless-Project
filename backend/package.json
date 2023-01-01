@@ -28,9 +28,9 @@
     "serverless-iam-roles-per-function": "^1.0.4",
     "serverless-reqvalidator-plugin": "^1.0.3",
     "serverless-webpack": "^5.2.0",
-    "ts-loader": "^5.3.3",
+    "ts-loader": "^9.4.2",
     "typescript": "^3.2.4",
-    "webpack": "^4.29.0",
+    "webpack": "^5.75.0",
     "webpack-node-externals": "^1.7.2"
   },
   "author": "Mustafa Saad",
